@@ -40,7 +40,7 @@ intentDialog.matches(/\b(hi|hello|hey|howdy)\b/i, '/sayHi')
 bot.dialog('/', intentDialog);
 
 bot.dialog('/sayHi', function(session){
-    session.send("Hi there! Try saying get me the news in Singapore");
+    session.send("Hi there! Try saying get me the news in Singapore or asking me to scan an image");
     session.endDialog();
 });
 //=========================================================
