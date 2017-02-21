@@ -34,6 +34,7 @@ var intentDialog = new builder.IntentDialog({recognizers: [luisRecognizer]});
 
 intentDialog.matches(/\b(hi|hello|hey|howdy)\b/i, '/sayHi')
     .matches("getNews", '/topNews')
+    .matches("scanImage", '/scanImage')
     .onDefault(builder.DialogAction.send("Sorry, I didn't understand what you said."));
 
 bot.dialog('/', intentDialog);
@@ -61,22 +62,58 @@ bot.dialog('/topNews', [
                 + "category=" + results.response.entity + "&count=10&mkt=en-US&originalImg=true";
             // Build options for the request
             var options = {
-                method: 'POST', // thie API call is a post request
-                uri: 'https://westus.api.cognitive.microsoft.com/vision/v1.0/describe[?maxCandidates]',
+                uri: url,
                 headers: {
-                    'Ocp-Apim-Subscription-Key': 'aa18e86e4f0f4fc98b29bfb6d7dc84b2',
-                    //'Content-Type': '**REFER TO API REFERENCE**'
+                    'Ocp-Apim-Subscription-Key': BINGSEARCHKEY
                 },
-                body: {
-                    url: 'http://cp91279.biography.com/1000509261001/1000509261001_2051017826001_Bio-Biography-Neil-Armstrong-SF.jpg'
-                },
-                json: true
+                json: true // Returns the response in json
             }
             //Make the call
             rp(options).then(function (body){
                 // The request is successful
                 sendTopNews(session, results, body); // Prints the body out to the console in json format
                 session.send("Managed to get your news.");
+            }).catch(function (err){
+                // An error occurred and the request failed
+                console.log(err.message);
+                session.send("Argh, something went wrong. :( Try again?");
+            }).finally(function () {
+                // This is executed at the end, regardless of whether the request is successful or not
+                session.endDialog();
+            });
+        } else {
+            // The user choses to quit
+            session.endDialog("Ok. Mission Aborted.");
+        }
+    }
+]);
+
+bot.dialog('/scanImage', [
+    function (session){
+        // Ask the user which category they would like
+        // Choices are separated by |
+        builder.Prompts.text(session, "Send me an image link of it please.");
+    }, function (session, results, next){
+        // The user chose a category
+        if (results.response && results.response.entity !== '(quit)') {
+           //Show user that we're processing their request by sending the typing indicator
+            session.sendTyping();
+            var options = {
+                method: 'POST',
+                uri: 'https://westus.api.cognitive.microsoft.com/vision/v1.0/describe',
+                headers: {
+                    'Ocp-Apim-Subscription-Key': 'aa18e86e4f0f4fc98b29bfb6d7dc84b2',
+                    'Content-type': 'application/json'
+                },
+                body:{
+                    url: results.response
+                },
+                json: true // Returns the response in json  
+            }
+            //Make the call
+            rp(options).then(function (body){
+                // The request is successful
+                session.send("I think it's " + body.description.captions[0].text);
             }).catch(function (err){
                 // An error occurred and the request failed
                 console.log(err.message);
