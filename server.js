@@ -21,6 +21,9 @@ var connector = new builder.ChatConnector({
     appId: process.env.MICROSOFT_APP_ID || 'fd08823c-1028-49c6-854b-9ef402ece2e9',
     appPassword: process.env.MICROSOFT_APP_PASSWORD || 'BUQJnZiohsqHzoq3MnuvgzU'
 });
+
+
+
 var bot = new builder.UniversalBot(connector);
 // If a Post request is made to /api/messages on port 3978 of our local server, then we pass it to the bot connector to handle
 server.post('/api/messages', connector.listen());
@@ -58,11 +61,16 @@ bot.dialog('/topNews', [
                 + "category=" + results.response.entity + "&count=10&mkt=en-US&originalImg=true";
             // Build options for the request
             var options = {
-                uri: url,
+                method: 'POST', // thie API call is a post request
+                uri: 'https://westus.api.cognitive.microsoft.com/vision/v1.0/describe[?maxCandidates]',
                 headers: {
-                    'Ocp-Apim-Subscription-Key': BINGSEARCHKEY
+                    'Ocp-Apim-Subscription-Key': 'aa18e86e4f0f4fc98b29bfb6d7dc84b2',
+                    //'Content-Type': '**REFER TO API REFERENCE**'
                 },
-                json: true // Returns the response in json
+                body: {
+                    url: 'http://cp91279.biography.com/1000509261001/1000509261001_2051017826001_Bio-Biography-Neil-Armstrong-SF.jpg'
+                },
+                json: true
             }
             //Make the call
             rp(options).then(function (body){
